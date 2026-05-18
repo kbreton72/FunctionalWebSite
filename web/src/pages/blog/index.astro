@@ -1,0 +1,207 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { client } from '../../lib/sanity';
+
+let posts: any[] = [];
+try {
+  posts = await client.fetch(`
+    *[_type == "post"] | order(publishedAt desc) {
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      "coverImageRef": coverImage.asset._ref,
+      "categories": categories[]->{title, slug, pillar}
+    }
+  `);
+} catch (err) {
+  console.error('[blog] Sanity fetch failed:', err);
+}
+
+function imageUrl(ref: string | undefined, width = 600): string | null {
+  if (!ref) return null;
+  const body = ref.replace('image-', '').replace(/-(\w+)$/, '.$1');
+  return `https://cdn.sanity.io/images/lk5dzwr6/production/${body}?w=${width}&auto=format`;
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
+}
+
+const PILLARS = [
+  { value: 'all',       label: 'All Articles', color: 'var(--color-charcoal)', soon: false },
+  { value: 'physical',  label: 'Physical',     color: '#7DB87A',               soon: false },
+  { value: 'mental',    label: 'Mental',        color: '#C9A84C',               soon: false },
+  { value: 'emotional', label: 'Emotional',     color: '#8AA4C8',               soon: false },
+  { value: 'spiritual', label: 'Spiritual',     color: '#B48FD4',               soon: false },
+  { value: 'social',    label: 'Social',        color: '#D4956A',               soon: true  },
+  { value: 'financial', label: 'Financial',     color: '#5BBFB5',               soon: true  },
+];
+---
+
+<BaseLayout title="Blog" description="Clean beauty, holistic wellness, and functional health articles from OptimumU.">
+  <Header />
+
+  <main class="pt-32 pb-24 min-h-screen bg-[var(--color-cream)]">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <!-- Page header -->
+      <div class="text-center mb-12">
+        <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-gold)] mb-4">The Journal</p>
+        <h1 class="font-serif text-5xl md:text-6xl text-[var(--color-charcoal)] mb-6">All Articles</h1>
+        <p class="text-gray-500 text-lg max-w-xl mx-auto">
+          Evidence-informed guidance on clean beauty, holistic health, and living well from the inside out.
+        </p>
+      </div>
+
+      <!-- Pillar filter tabs -->
+      <div class="flex flex-wrap gap-2 justify-center mb-12" role="group" aria-label="Filter by pillar">
+        {PILLARS.map(p => (
+          p.soon ? (
+            <span
+              class="relative inline-flex items-center gap-1.5 px-5 py-2 text-[11px] uppercase tracking-widest rounded-full border border-gray-200 text-gray-300 cursor-not-allowed select-none"
+            >
+              {p.label}
+              <span class="text-[9px] bg-gray-200 text-gray-400 rounded-full px-1.5 py-0.5 leading-tight">Soon</span>
+            </span>
+          ) : (
+            <button
+              data-filter={p.value}
+              class="filter-btn px-5 py-2 text-[11px] uppercase tracking-widest rounded-full border transition-all duration-200"
+              style={`--pillar-color: ${p.color}`}
+            >
+              {p.label}
+            </button>
+          )
+        ))}
+      </div>
+
+      <!-- Post grid -->
+      {posts.length === 0 ? (
+        <p class="text-center text-gray-400 text-sm py-24">No articles found.</p>
+      ) : (
+        <div id="post-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {posts.map((post: any) => {
+            const pillars = [...new Set((post.categories ?? []).map((c: any) => c.pillar).filter(Boolean))];
+            return (
+              <article
+                class="bg-white group flex flex-col post-card"
+                data-pillars={pillars.join(' ')}
+              >
+                <!-- Cover image -->
+                {imageUrl(post.coverImageRef) && (
+                  <a href={`/blog/${post.slug.current}`} class="block overflow-hidden aspect-[4/3]">
+                    <img
+                      src={imageUrl(post.coverImageRef)!}
+                      alt={post.title}
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  </a>
+                )}
+
+                <!-- Category badge -->
+                <div class="px-6 pt-6">
+                  {post.categories?.length > 0 && (
+                    <span class="text-[10px] uppercase tracking-[0.25em] text-[var(--color-gold)]">
+                      {post.categories[0].title}
+                    </span>
+                  )}
+                </div>
+
+                <!-- Content -->
+                <div class="px-6 pt-3 pb-6 flex flex-col flex-1">
+                  <h2 class="font-serif text-xl text-[var(--color-charcoal)] leading-snug mb-3 group-hover:text-[var(--color-gold)] transition-colors duration-200">
+                    <a href={`/blog/${post.slug.current}`}>
+                      {post.title}
+                    </a>
+                  </h2>
+
+                  {post.excerpt && (
+                    <p class="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-4 flex-1">
+                      {post.excerpt}
+                    </p>
+                  )}
+
+                  <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                    <time class="text-xs text-gray-400" datetime={post.publishedAt}>
+                      {post.publishedAt ? formatDate(post.publishedAt) : ''}
+                    </time>
+                    <a
+                      href={`/blog/${post.slug.current}`}
+                      class="text-xs uppercase tracking-widest text-[var(--color-gold)] hover:underline"
+                    >
+                      Read →
+                    </a>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      <!-- Empty state for filtered view -->
+      <p id="no-results" class="hidden text-center text-gray-400 text-sm py-24">No articles in this category yet.</p>
+
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .filter-btn {
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    background: white;
+  }
+  .filter-btn:hover {
+    color: var(--pillar-color);
+    border-color: var(--pillar-color);
+  }
+  .filter-btn.active {
+    background: var(--pillar-color);
+    border-color: var(--pillar-color);
+    color: white;
+  }
+  .filter-btn[data-filter="all"].active {
+    background: var(--color-charcoal);
+    border-color: var(--color-charcoal);
+    color: white;
+  }
+  .post-card.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+  const cards = document.querySelectorAll<HTMLElement>('.post-card');
+  const noResults = document.getElementById('no-results')!;
+
+  function applyFilter(filter: string) {
+    let visible = 0;
+    cards.forEach(card => {
+      const pillars = card.dataset.pillars ?? '';
+      const show = filter === 'all' || pillars.split(' ').includes(filter);
+      card.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    noResults.classList.toggle('hidden', visible > 0);
+
+    buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
+  }
+
+  // Set default active state
+  document.querySelector<HTMLButtonElement>('.filter-btn[data-filter="all"]')?.classList.add('active');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => applyFilter(btn.dataset.filter ?? 'all'));
+  });
+</script>

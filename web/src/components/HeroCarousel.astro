@@ -1,0 +1,161 @@
+---
+const slides = [
+  {
+    title: 'Optimum Mental Health',
+    subtitle: 'Cultivate clarity, resilience, and a thriving mind.',
+    cta: 'Explore Mentally',
+    href: '/pillars/mental',
+    image: '/images/Mental%20Home%20Page.png',
+  },
+  {
+    title: 'Optimum Emotional Health',
+    subtitle: 'Embrace the full spectrum of your emotional world.',
+    cta: 'Explore Emotionally',
+    href: '/pillars/emotional',
+    image: '/images/Emotional%20Home%20Page.png',
+  },
+  {
+    title: 'Optimum Physical Health',
+    subtitle: 'Move, nourish, and restore your body with intention.',
+    cta: 'Explore Physically',
+    href: '/pillars/physical',
+    image: '/images/Physical%20Home%20Page.png',
+  },
+  {
+    title: 'Optimum Social Health',
+    subtitle: 'Deepen connection and thrive in community.',
+    cta: 'Explore Socially',
+    href: '/pillars/social',
+    image: '/images/Social%20Home%20Page.png',
+  },
+  {
+    title: 'Optimum Spiritual Health',
+    subtitle: 'Find stillness, meaning, and alignment within.',
+    cta: 'Explore Spiritually',
+    href: '/pillars/spiritual',
+    image: '/images/Spirit%20Home%20Page.png',
+  },
+  {
+    title: 'Optimum Financial Health',
+    subtitle: 'Build the foundation for lasting abundance and security.',
+    cta: 'Explore Financially',
+    href: '/pillars/financial',
+    image: '/images/Financial%20Home%20Page.png',
+    fallback: 'from-[#0d2a1a] to-[#1a5c3a]',
+  },
+];
+---
+
+<section class="relative h-screen overflow-hidden" aria-label="Hero carousel">
+
+  {slides.map((slide, i) => (
+    <div
+      class:list={[
+        'slide absolute inset-0 transition-opacity duration-1000 ease-in-out',
+        i === 0 ? 'opacity-100' : 'opacity-0'
+      ]}
+      aria-hidden={i !== 0}
+      data-index={i}
+    >
+      <div class={`absolute inset-0 bg-cover bg-center ${slide.fallback ? `bg-gradient-to-br ${slide.fallback}` : ''}`} style={`background-image: url('${slide.image}')`} />
+      <div class="absolute inset-0 bg-black/40" />
+
+      <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-6 max-w-4xl mx-auto">
+        <p class="text-xs uppercase tracking-[0.3em] text-white/60 mb-4">Optimum U</p>
+        <h2
+          class="font-serif text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
+          style={`text-shadow: 0 2px 20px rgba(0,0,0,0.4)`}
+        >
+          {slide.title}
+        </h2>
+        <p class="text-lg md:text-xl text-white/80 mb-10 max-w-xl leading-relaxed font-light">
+          {slide.subtitle}
+        </p>
+        <a
+          href={slide.href}
+          class="border border-white/70 text-white text-xs uppercase tracking-[0.2em] px-10 py-4 hover:bg-white hover:text-[var(--color-charcoal)] transition-all duration-300"
+        >
+          {slide.cta}
+        </a>
+      </div>
+    </div>
+  ))}
+
+  <!-- Dot navigation -->
+  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 z-20" role="tablist" aria-label="Carousel navigation">
+    {slides.map((slide, i) => (
+      <button
+        class:list={[
+          'dot h-[3px] transition-all duration-300 bg-white/40',
+          i === 0 ? 'w-8 bg-white' : 'w-4'
+        ]}
+        data-target={i}
+        role="tab"
+        aria-label={slide.title}
+        aria-selected={i === 0}
+      />
+    ))}
+  </div>
+
+  <!-- Arrow navigation -->
+  <button id="prev-slide" class="absolute left-6 top-1/2 -translate-y-1/2 z-20 text-white/60 hover:text-white transition-colors p-2" aria-label="Previous slide">
+    <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+    </svg>
+  </button>
+  <button id="next-slide" class="absolute right-6 top-1/2 -translate-y-1/2 z-20 text-white/60 hover:text-white transition-colors p-2" aria-label="Next slide">
+    <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+
+</section>
+
+<script>
+  const slides = document.querySelectorAll<HTMLElement>('.slide');
+  const dots = document.querySelectorAll<HTMLElement>('.dot');
+  let current = 0;
+  let timer: ReturnType<typeof setInterval>;
+
+  function goTo(n: number) {
+    slides[current].classList.replace('opacity-100', 'opacity-0');
+    slides[current].setAttribute('aria-hidden', 'true');
+    dots[current].classList.remove('w-8', 'bg-white');
+    dots[current].classList.add('w-4', 'bg-white/40');
+    dots[current].setAttribute('aria-selected', 'false');
+
+    current = (n + slides.length) % slides.length;
+
+    slides[current].classList.replace('opacity-0', 'opacity-100');
+    slides[current].setAttribute('aria-hidden', 'false');
+    dots[current].classList.remove('w-4', 'bg-white/40');
+    dots[current].classList.add('w-8', 'bg-white');
+    dots[current].setAttribute('aria-selected', 'true');
+  }
+
+  function startTimer() {
+    timer = setInterval(() => goTo(current + 1), 6000);
+  }
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => {
+      clearInterval(timer);
+      goTo(i);
+      startTimer();
+    });
+  });
+
+  document.getElementById('prev-slide')!.addEventListener('click', () => {
+    clearInterval(timer);
+    goTo(current - 1);
+    startTimer();
+  });
+
+  document.getElementById('next-slide')!.addEventListener('click', () => {
+    clearInterval(timer);
+    goTo(current + 1);
+    startTimer();
+  });
+
+  startTimer();
+</script>

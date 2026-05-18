@@ -1,0 +1,51 @@
+---
+const nav = [
+  { label: 'Our Pillars', href: '/pillars' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Resources', href: '/resources' },
+  { label: 'About', href: '/about' },
+];
+---
+
+<header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <a href="/" class="font-serif text-2xl font-bold text-[var(--color-gold)] tracking-wide">
+      OptimumU
+    </a>
+
+    <nav class="hidden md:flex items-center gap-10">
+      {nav.map(({ label, href }) => (
+        <a
+          href={href}
+          class="text-xs uppercase tracking-widest text-white/90 hover:text-[var(--color-gold-light)] transition-colors duration-200"
+        >
+          {label}
+        </a>
+      ))}
+    </nav>
+
+    <button id="menu-toggle" class="md:hidden text-white" aria-label="Open menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+</header>
+
+<script>
+  const header = document.getElementById('site-header')!;
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 80) {
+      header.classList.add('bg-white/95', 'backdrop-blur-sm', 'shadow-sm');
+      header.querySelectorAll('nav a').forEach(el =>
+        el.classList.replace('text-white/90', 'text-[var(--color-charcoal)]')
+      );
+    } else {
+      header.classList.remove('bg-white/95', 'backdrop-blur-sm', 'shadow-sm');
+      header.querySelectorAll('nav a').forEach(el =>
+        el.classList.replace('text-[var(--color-charcoal)]', 'text-white/90')
+      );
+    }
+  });
+</script>

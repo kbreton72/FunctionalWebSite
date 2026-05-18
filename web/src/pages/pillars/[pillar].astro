@@ -1,0 +1,193 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { client } from '../../lib/sanity';
+
+const PILLAR_META: Record<string, { title: string; description: string; color: string; image: string | null }> = {
+  physical: {
+    title: 'Physical Health',
+    description: 'Clean beauty, functional wellness, and natural care for your body — from skin to scalp to immune support.',
+    color: '#7DB87A',
+    image: '/images/Physical Home Page.png',
+  },
+  mental: {
+    title: 'Mental Health',
+    description: 'Clarity, focus, and cognitive resilience through evidence-based natural practices.',
+    color: '#C9A84C',
+    image: '/images/Mental Home Page.png',
+  },
+  emotional: {
+    title: 'Emotional Health',
+    description: 'Emotional intelligence and hormonal balance for a centered, resilient inner life.',
+    color: '#8AA4C8',
+    image: '/images/Emotional Home Page.png',
+  },
+  spiritual: {
+    title: 'Spiritual Health',
+    description: 'Sacred oils and ritual practices that ground, uplift, and align you with your deeper self.',
+    color: '#B48FD4',
+    image: '/images/Spirit Home Page.png',
+  },
+  social: {
+    title: 'Social Health',
+    description: 'Meaningful connection, community, and relational well-being.',
+    color: '#D4956A',
+    image: '/images/Social Home Page.png',
+  },
+  financial: {
+    title: 'Financial Health',
+    description: 'Build lasting abundance, security, and financial freedom.',
+    color: '#5BBFB5',
+    image: null,
+  },
+};
+
+const COMING_SOON = ['social', 'financial'];
+
+export async function getStaticPaths() {
+  return Object.keys({
+    physical: 1, mental: 1, emotional: 1, spiritual: 1, social: 1, financial: 1,
+  }).map(pillar => ({ params: { pillar } }));
+}
+
+const { pillar } = Astro.params;
+const meta = PILLAR_META[pillar];
+if (!meta) return Astro.redirect('/pillars');
+
+const isSoon = COMING_SOON.includes(pillar);
+
+let categoriesWithPosts: { category: string; categorySlug: string; posts: any[] }[] = [];
+
+if (!isSoon) {
+  const data = await client.fetch(`
+    *[_type == "category" && pillar == $pillar] | order(title asc) {
+      _id,
+      title,
+      "slug": slug.current,
+      "posts": *[_type == "post" && references(^._id)] | order(publishedAt desc) {
+        _id,
+        title,
+        slug,
+        excerpt,
+        publishedAt,
+        "coverImageRef": coverImage.asset._ref
+      }
+    }
+  `, { pillar });
+
+  categoriesWithPosts = (data ?? [])
+    .filter((c: any) => c.posts?.length > 0)
+    .map((c: any) => ({ category: c.title, categorySlug: c.slug, posts: c.posts }));
+}
+
+function imageUrl(ref: string | undefined, width = 600): string | null {
+  if (!ref) return null;
+  const body = ref.replace('image-', '').replace(/-(\w+)$/, '.$1');
+  return `https://cdn.sanity.io/images/lk5dzwr6/production/${body}?w=${width}&auto=format`;
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+const totalPosts = categoriesWithPosts.reduce((n, c) => n + c.posts.length, 0);
+---
+
+<BaseLayout title={meta.title} description={meta.description}>
+  <Header />
+
+  <main class="pt-24 pb-24 min-h-screen bg-[var(--color-cream)]">
+
+    <!-- Pillar hero -->
+    <div class="relative h-72 md:h-96 overflow-hidden">
+      {meta.image ? (
+        <img src={meta.image} alt={meta.title} class="absolute inset-0 w-full h-full object-cover" />
+      ) : (
+        <div class="absolute inset-0" style={`background: ${meta.color}30`} />
+      )}
+      <div class="absolute inset-0 bg-black/40" />
+      <div class="relative h-full flex flex-col items-center justify-center text-center px-6">
+        <p class="text-xs uppercase tracking-[0.3em] text-white/70 mb-3">The Pillars</p>
+        <h1 class="font-serif text-5xl md:text-6xl text-white mb-4">{meta.title}</h1>
+        <p class="text-white/80 text-lg max-w-xl">{meta.description}</p>
+      </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 pt-16">
+
+      <!-- Back link -->
+      <a href="/pillars" class="text-xs uppercase tracking-widest text-gray-400 hover:text-[var(--color-gold)] transition-colors mb-12 inline-block">
+        ← All Pillars
+      </a>
+
+      {isSoon ? (
+        <!-- Coming soon -->
+        <div class="text-center py-24">
+          <p class="font-serif text-3xl text-[var(--color-charcoal)] mb-4">Coming Soon</p>
+          <p class="text-gray-400 text-sm max-w-md mx-auto">
+            We're crafting thoughtful content for this pillar. Check back soon, or explore our other pillars in the meantime.
+          </p>
+          <a href="/pillars" class="inline-block mt-8 text-xs uppercase tracking-widest text-[var(--color-gold)] hover:underline">
+            Explore Other Pillars →
+          </a>
+        </div>
+      ) : totalPosts === 0 ? (
+        <p class="text-center text-gray-400 text-sm py-24">No articles yet — check back soon.</p>
+      ) : (
+        categoriesWithPosts.map(({ category, posts }) => (
+          <section class="mb-16">
+            <div class="flex items-center gap-4 mb-8">
+              <h2 class="font-serif text-2xl text-[var(--color-charcoal)]">{category}</h2>
+              <div class="flex-1 h-px bg-gray-200" />
+              <span class="text-xs text-gray-400">{posts.length} {posts.length === 1 ? 'article' : 'articles'}</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {posts.map((post: any) => (
+                <article class="bg-white group flex flex-col">
+                  {imageUrl(post.coverImageRef) && (
+                    <a href={`/blog/${post.slug.current}`} class="block overflow-hidden aspect-[4/3]">
+                      <img
+                        src={imageUrl(post.coverImageRef)!}
+                        alt={post.title}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    </a>
+                  )}
+
+                  <div class="px-6 pt-6">
+                    <span class="text-[10px] uppercase tracking-[0.25em]" style={`color: ${meta.color}`}>
+                      {category}
+                    </span>
+                  </div>
+
+                  <div class="px-6 pt-3 pb-6 flex flex-col flex-1">
+                    <h3 class="font-serif text-xl text-[var(--color-charcoal)] leading-snug mb-3 group-hover:opacity-80 transition-opacity">
+                      <a href={`/blog/${post.slug.current}`}>{post.title}</a>
+                    </h3>
+                    {post.excerpt && (
+                      <p class="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-4 flex-1">{post.excerpt}</p>
+                    )}
+                    <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                      <time class="text-xs text-gray-400" datetime={post.publishedAt}>
+                        {post.publishedAt ? formatDate(post.publishedAt) : ''}
+                      </time>
+                      <a href={`/blog/${post.slug.current}`} class="text-xs uppercase tracking-widest hover:underline" style={`color: ${meta.color}`}>
+                        Read →
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))
+      )}
+
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

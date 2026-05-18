@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const pillars = [
+  {
+    slug: 'physical',
+    title: 'Physical Health',
+    description: 'Functional movement, clean beauty, nutrition, and restorative rest for your body.',
+    color: '#7DB87A',
+    image: '/images/Physical Home Page.png',
+    soon: false,
+  },
+  {
+    slug: 'mental',
+    title: 'Mental Health',
+    description: 'Clarity, focus, and cognitive resilience through evidence-based practices.',
+    color: '#C9A84C',
+    image: '/images/Mental Home Page.png',
+    soon: false,
+  },
+  {
+    slug: 'emotional',
+    title: 'Emotional Health',
+    description: 'Emotional intelligence and regulation for a balanced, resilient inner life.',
+    color: '#8AA4C8',
+    image: '/images/Emotional Home Page.png',
+    soon: false,
+  },
+  {
+    slug: 'spiritual',
+    title: 'Spiritual Health',
+    description: 'Purpose, stillness, and alignment with your deeper self.',
+    color: '#B48FD4',
+    image: '/images/Spirit Home Page.png',
+    soon: false,
+  },
+  {
+    slug: 'social',
+    title: 'Social Health',
+    description: 'Meaningful connection, community, and relational well-being.',
+    color: '#D4956A',
+    image: '/images/Social Home Page.png',
+    soon: true,
+  },
+  {
+    slug: 'financial',
+    title: 'Financial Health',
+    description: 'Build lasting abundance, security, and financial freedom.',
+    color: '#5BBFB5',
+    image: null,
+    soon: true,
+  },
+];
+---
+
+<BaseLayout title="Our Pillars" description="Explore the six pillars of whole-person wellness at OptimumU.">
+  <Header />
+
+  <main class="pt-32 pb-24 min-h-screen bg-[var(--color-cream)]">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <!-- Page header -->
+      <div class="text-center mb-16">
+        <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-gold)] mb-4">The Framework</p>
+        <h1 class="font-serif text-5xl md:text-6xl text-[var(--color-charcoal)] mb-6">Our Pillars</h1>
+        <p class="text-gray-500 text-lg max-w-2xl mx-auto leading-relaxed">
+          True wellness is not a single dimension. It is the harmony of mind, emotion, body, connection, spirit, and abundance — each pillar essential, each supporting the others.
+        </p>
+      </div>
+
+      <!-- Pillar cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {pillars.map(p => (
+          p.soon ? (
+            <div class="bg-white flex flex-col opacity-60 cursor-not-allowed relative">
+              {p.image && (
+                <div class="aspect-[4/3] overflow-hidden">
+                  <img src={p.image} alt={p.title} class="w-full h-full object-cover grayscale" loading="lazy" />
+                </div>
+              )}
+              {!p.image && (
+                <div class="aspect-[4/3] flex items-center justify-center" style={`background: ${p.color}20`}>
+                  <span class="font-serif text-2xl" style={`color: ${p.color}`}>{p.title.split(' ')[0]}</span>
+                </div>
+              )}
+              <div class="p-8 flex flex-col flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                  <h2 class="font-serif text-2xl" style={`color: ${p.color}`}>{p.title}</h2>
+                  <span class="text-[9px] bg-gray-100 text-gray-400 rounded-full px-2 py-1 uppercase tracking-widest">Soon</span>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed">{p.description}</p>
+              </div>
+            </div>
+          ) : (
+            <a href={`/pillars/${p.slug}`} class="bg-white group flex flex-col hover:shadow-lg transition-shadow duration-300">
+              {p.image && (
+                <div class="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={p.image}
+                    alt={p.title}
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              <div class="p-8 flex flex-col flex-1">
+                <h2 class="font-serif text-2xl mb-3 group-hover:opacity-80 transition-opacity" style={`color: ${p.color}`}>
+                  {p.title}
+                </h2>
+                <p class="text-gray-500 text-sm leading-relaxed flex-1">{p.description}</p>
+                <span class="mt-6 text-xs uppercase tracking-widest self-start" style={`color: ${p.color}`}>
+                  Explore →
+                </span>
+              </div>
+            </a>
+          )
+        ))}
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

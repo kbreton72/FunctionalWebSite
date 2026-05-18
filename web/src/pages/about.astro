@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import GeneDiagram from '../components/GeneDiagram.astro';
+---
+
+<BaseLayout title="About" description="Learn about OptimumU and our six-pillar approach to whole-person wellness.">
+  <Header />
+  <main class="pt-24">
+
+    <!-- Hero -->
+    <section class="py-20 text-center px-6 max-w-3xl mx-auto">
+      <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-gold)] mb-4">Our Story</p>
+      <h1 class="font-serif text-5xl md:text-6xl text-[var(--color-charcoal)] mb-8 leading-tight">
+        Whole-person wellness,<br />by design
+      </h1>
+      <p class="text-gray-500 text-lg leading-relaxed">
+        OptimumU was born from a simple belief: that true health is not the absence of illness,
+        but the presence of vitality — in every dimension of who you are.
+        Our framework weaves together six essential pillars of well-being, each one inseparable from the others.
+      </p>
+    </section>
+
+    <!-- Gene Diagram -->
+    <section class="py-16 bg-[var(--color-cream)]">
+      <div class="max-w-4xl mx-auto px-6">
+        <div class="text-center mb-12">
+          <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-gold)] mb-4">The Framework</p>
+          <h2 class="font-serif text-4xl text-[var(--color-charcoal)] mb-4">The OptimumU Blueprint</h2>
+          <p class="text-gray-500 max-w-xl mx-auto leading-relaxed">
+            Like the double helix encoded in every cell, our six pillars are woven together —
+            each one strengthening the whole.
+          </p>
+        </div>
+        <GeneDiagram />
+      </div>
+    </section>
+
+    <!-- Mission -->
+    <section class="py-24 px-6 max-w-3xl mx-auto text-center">
+      <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-gold)] mb-4">Our Mission</p>
+      <h2 class="font-serif text-4xl text-[var(--color-charcoal)] mb-8">You were designed to thrive</h2>
+      <p class="text-gray-500 text-lg leading-relaxed mb-6">
+        We bridge the gap between conventional medicine and the wisdom of functional, whole-person health.
+        Through evidence-informed guidance, honest storytelling, and a community rooted in compassion,
+        we help you rediscover what it feels like to be truly well.
+      </p>
+      <p class="text-gray-500 text-lg leading-relaxed">
+        Whether you are just beginning your wellness journey or deepening a practice you have held for years,
+        OptimumU is here to walk alongside you.
+      </p>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

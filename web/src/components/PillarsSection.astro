@@ -1,0 +1,75 @@
+---
+const pillars = [
+  {
+    icon: '🧠',
+    title: 'Mental',
+    description: 'Clarity, focus, and cognitive resilience through evidence-based practices.',
+    href: '/pillars/mental',
+    color: 'var(--color-gold)',
+  },
+  {
+    icon: '💛',
+    title: 'Emotional',
+    description: 'Emotional intelligence and regulation for a balanced inner life.',
+    href: '/pillars/emotional',
+    color: '#8AA4C8',
+  },
+  {
+    icon: '🌿',
+    title: 'Physical',
+    description: 'Functional movement, nutrition, and restorative rest for your body.',
+    href: '/pillars/physical',
+    color: '#7DB87A',
+  },
+  {
+    icon: '🤝',
+    title: 'Social',
+    description: 'Meaningful connection, community, and relational well-being.',
+    href: '/pillars/social',
+    color: '#D4956A',
+  },
+  {
+    icon: '✨',
+    title: 'Spiritual',
+    description: 'Purpose, stillness, and alignment with your deeper self.',
+    href: '/pillars/spiritual',
+    color: '#B48FD4',
+  },
+  {
+    icon: '🌱',
+    title: 'Financial',
+    description: 'Build lasting abundance, security, and financial freedom.',
+    href: '/pillars/financial',
+    color: '#5BBFB5',
+  },
+];
+---
+
+<section class="py-24 bg-[var(--color-cream)]">
+  <div class="max-w-6xl mx-auto px-6">
+
+    <div class="text-center mb-16">
+      <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-gold)] mb-4">The Framework</p>
+      <h2 class="font-serif text-4xl md:text-5xl text-[var(--color-charcoal)] mb-6">Five Pillars of Optimal Living</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto leading-relaxed">
+        True wellness is not a single dimension. It is the harmony of mind, emotion, body, connection, and spirit — each pillar essential, each supporting the others.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+      {pillars.map(({ icon, title, description, href, color }) => (
+        <a href={href} class="group block bg-white p-8 text-center hover:shadow-lg transition-shadow duration-300">
+          <div class="text-4xl mb-4">{icon}</div>
+          <h3
+            class="font-serif text-xl font-semibold mb-3 group-hover:opacity-80 transition-opacity"
+            style={`color: ${color}`}
+          >
+            {title}
+          </h3>
+          <p class="text-sm text-gray-500 leading-relaxed">{description}</p>
+        </a>
+      ))}
+    </div>
+
+  </div>
+</section>

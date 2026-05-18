@@ -1,0 +1,248 @@
+---
+const cx = 400;
+const amplitude = 115;
+const startY = 100;
+const endY = 1700;
+const totalHeight = endY - startY;
+const numCycles = 3;
+const omega = (2 * Math.PI * numCycles) / totalHeight;
+
+function hx(y: number, phase: number) {
+  return cx + amplitude * Math.sin((y - startY) * omega + phase);
+}
+
+// Build smooth helix paths
+const pts: string[] = [];
+const pts2: string[] = [];
+for (let y = startY; y <= endY; y += 3) {
+  pts.push(`${hx(y, 0).toFixed(1)},${y}`);
+  pts2.push(`${hx(y, Math.PI).toFixed(1)},${y}`);
+}
+const path1 = 'M' + pts.join(' L');
+const path2 = 'M' + pts2.join(' L');
+
+// Cross-rungs (base pairs)
+const rungs: Array<{ y: number; x1: number; x2: number }> = [];
+for (let y = startY + 12; y <= endY - 12; y += 24) {
+  rungs.push({ y, x1: hx(y, 0), x2: hx(y, Math.PI) });
+}
+
+// 6 pillar atoms at helix crossover points
+const pillars = [
+  {
+    label: 'Mental',
+    color: '#C9A84C',
+    subs: ['Cognitive Health', 'Self Care', 'Mindset', 'Mental Fitness'],
+  },
+  {
+    label: 'Emotional',
+    color: '#8AA4C8',
+    subs: ['Stress Management', 'Self Awareness', 'Resilience', 'Inner Balance'],
+  },
+  {
+    label: 'Physical',
+    color: '#7DB87A',
+    subs: ['Regular Exercise', 'Balanced Nutrition', 'Adequate Sleep', 'Preventative Care'],
+  },
+  {
+    label: 'Social',
+    color: '#D4956A',
+    subs: ['Relationships', 'Community', 'Communication', 'Support Systems'],
+  },
+  {
+    label: 'Spiritual',
+    color: '#B48FD4',
+    subs: ['Gratitude', 'Inner Purpose', 'Personal Values', 'Mindfulness'],
+  },
+  {
+    label: 'Financial',
+    color: '#5BBFB5',
+    subs: ['Budgeting', 'Savings', 'Future Planning', 'Financial Wellness'],
+  },
+];
+
+// Crossover positions: sin(t) = 0 at t = n*π
+const atoms = pillars.map((p, i) => {
+  const n = i + 1;
+  const y = startY + (n * totalHeight) / (2 * numCycles);
+  return { ...p, x: cx, y };
+});
+
+// Sub-category positions: spread left/right to avoid vertical overlap
+// angles in degrees: upper-left, upper-right, lower-left, lower-right
+const subAngles = [-140, -40, 140, 40];
+const subDist = 118;
+---
+
+<div class="gene-wrap">
+  <svg
+    viewBox={`0 0 800 ${endY + 100}`}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-label="OptimumU six-pillar wellness framework"
+    class="gene-svg"
+  >
+    <defs>
+      <linearGradient id="helixGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#C9A84C" />
+        <stop offset="20%"  stop-color="#8AA4C8" />
+        <stop offset="40%"  stop-color="#7DB87A" />
+        <stop offset="60%"  stop-color="#D4956A" />
+        <stop offset="80%"  stop-color="#B48FD4" />
+        <stop offset="100%" stop-color="#5BBFB5" />
+      </linearGradient>
+      <filter id="atomGlow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="6" result="blur" />
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- Base-pair rungs -->
+    {rungs.map(({ y, x1, x2 }) => (
+      <line
+        x1={x1.toFixed(1)} y1={y}
+        x2={x2.toFixed(1)} y2={y}
+        stroke="rgba(180,180,200,0.18)"
+        stroke-width="1.2"
+      />
+    ))}
+
+    <!-- Helix strand 2 (behind) -->
+    <path d={path2} fill="none" stroke="url(#helixGrad)" stroke-width="5" stroke-linecap="round" opacity="0.55" />
+    <!-- Helix strand 1 (front) -->
+    <path d={path1} fill="none" stroke="url(#helixGrad)" stroke-width="5" stroke-linecap="round" opacity="0.85" class="strand-pulse" />
+
+    <!-- Atom groups -->
+    {atoms.map(({ label, color, subs, x, y }, idx) => (
+      <g class="atom" style={`animation-delay: ${idx * 0.4}s`}>
+
+        <!-- Orbital rings -->
+        <g transform={`translate(${x},${y})`}>
+          <ellipse cx="0" cy="0" rx="105" ry="26"
+            fill="none" stroke={color} stroke-width="1" opacity="0.25"
+            class="ring ring-a" style={`animation-delay: ${idx * 0.3}s`} />
+          <ellipse cx="0" cy="0" rx="105" ry="26"
+            fill="none" stroke={color} stroke-width="1" opacity="0.2"
+            class="ring ring-b" style={`animation-delay: ${idx * 0.3 + 0.2}s; transform: rotate(55deg)`} />
+          <ellipse cx="0" cy="0" rx="105" ry="26"
+            fill="none" stroke={color} stroke-width="1" opacity="0.2"
+            class="ring ring-c" style={`animation-delay: ${idx * 0.3 + 0.4}s; transform: rotate(-55deg)`} />
+        </g>
+
+        <!-- Sub-category atoms -->
+        {subs.map((sub, si) => {
+          const rad = (subAngles[si] * Math.PI) / 180;
+          const sx = (x + subDist * Math.cos(rad)).toFixed(1);
+          const sy = (y + subDist * Math.sin(rad)).toFixed(1);
+          const mx = (x + subDist * 0.52 * Math.cos(rad)).toFixed(1);
+          const my = (y + subDist * 0.52 * Math.sin(rad)).toFixed(1);
+          return (
+            <g class="sub-atom" style={`animation-delay: ${idx * 0.4 + si * 0.1}s`}>
+              <line
+                x1={mx} y1={my} x2={sx} y2={sy}
+                stroke={color} stroke-width="1.2"
+                stroke-dasharray="4 3" opacity="0.45"
+              />
+              <circle cx={sx} cy={sy} r="22" fill={color} opacity="0.12" filter="url(#softGlow)" />
+              <circle cx={sx} cy={sy} r="22" fill="white" stroke={color} stroke-width="1.5" opacity="0.9" />
+              <text
+                x={sx} y={sy}
+                text-anchor="middle" dominant-baseline="middle"
+                font-size="7.5" fill={color}
+                style="font-family: Inter, sans-serif; font-weight: 500;"
+              >
+                {sub.split(' ').map((word: string, wi: number) => (
+                  <tspan x={sx} dy={wi === 0 ? (sub.split(' ').length > 1 ? '-5' : '0') : '10'}>{word}</tspan>
+                ))}
+              </text>
+            </g>
+          );
+        })}
+
+        <!-- Nucleus glow -->
+        <circle cx={x} cy={y} r="56"
+          fill={color} opacity="0.14"
+          class="nucleus-glow" style={`animation-delay: ${idx * 0.4}s`}
+          filter="url(#atomGlow)"
+        />
+        <!-- Nucleus -->
+        <circle cx={x} cy={y} r="46" fill="white" stroke={color} stroke-width="2.5" />
+        <text
+          x={x} y={y - 8}
+          text-anchor="middle"
+          font-size="9.5" fill={color}
+          style="font-family: 'Playfair Display', Georgia, serif; font-weight: 600;"
+        >Optimum</text>
+        <text
+          x={x} y={y + 5}
+          text-anchor="middle"
+          font-size="11" fill={color}
+          style="font-family: 'Playfair Display', Georgia, serif; font-weight: 700;"
+        >{label}</text>
+        <text
+          x={x} y={y + 18}
+          text-anchor="middle"
+          font-size="8.5" fill={color} opacity="0.7"
+          style="font-family: 'Playfair Display', Georgia, serif;"
+        >Health</text>
+
+      </g>
+    ))}
+  </svg>
+</div>
+
+<style>
+  .gene-wrap {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .gene-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Helix breathing */
+  .strand-pulse {
+    animation: strand-breathe 5s ease-in-out infinite alternate;
+  }
+  @keyframes strand-breathe {
+    from { opacity: 0.7; }
+    to   { opacity: 1; }
+  }
+
+  /* Orbital ring spin */
+  .ring {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .ring-a { animation: spin-cw  22s linear infinite; }
+  .ring-b { animation: spin-ccw 28s linear infinite; }
+  .ring-c { animation: spin-cw  34s linear infinite; }
+
+  @keyframes spin-cw  { to { transform: rotate(360deg);  } }
+  @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+
+  /* Nucleus pulse */
+  .nucleus-glow {
+    animation: nucleus-pulse 4s ease-in-out infinite;
+  }
+  @keyframes nucleus-pulse {
+    0%, 100% { opacity: 0.14; r: 56; }
+    50%       { opacity: 0.28; r: 64; }
+  }
+
+  /* Sub-atom fade in */
+  .sub-atom {
+    animation: fade-in 0.8s ease-out both;
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+</style>

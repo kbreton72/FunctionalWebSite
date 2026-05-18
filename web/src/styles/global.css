@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #C9A84C;
+  --color-gold-dark: #A07830;
+  --color-gold-light: #E8D5A3;
+  --color-cream: #FAF8F4;
+  --color-charcoal: #2C2C2C;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+body {
+  font-family: theme(--font-sans);
+  color: var(--color-charcoal);
+  background-color: white;
+}
