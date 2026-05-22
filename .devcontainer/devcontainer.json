@@ -1,10 +1,14 @@
 {
   "name": "Functional Website",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
-  "forwardPorts": [4321, 3333],
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [4321, 3333, 4566, 80],
   "portsAttributes": {
     "4321": { "label": "Astro Dev Server" },
-    "3333": { "label": "Sanity Studio" }
+    "3333": { "label": "Sanity Studio" },
+    "4566": { "label": "LocalStack" },
+    "80": { "label": "optimumu.localhost" }
   },
   "customizations": {
     "vscode": {
@@ -21,6 +25,13 @@
           "editor.defaultFormatter": "astro-build.astro-vscode"
         }
       }
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
+    "ghcr.io/localstack/devcontainer-feature/localstack-cli:latest": {
+      "version": "latest",
+      "awslocal": true
     }
   },
   "postCreateCommand": "npm install"

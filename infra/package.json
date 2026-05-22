@@ -1,0 +1,27 @@
+{
+  "name": "infra",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "build:lambda": "esbuild lib/webhook-lambda/index.ts --bundle --outfile=lib/webhook-lambda/dist/index.js --platform=node --target=node22 --external:@aws-sdk/client-codebuild",
+    "watch:lambda": "esbuild lib/webhook-lambda/index.ts --bundle --outfile=lib/webhook-lambda/dist/index.js --platform=node --target=node22 --external:@aws-sdk/client-codebuild --watch",
+    "bootstrap:local": "CDK_DEFAULT_ACCOUNT=000000000000 CDK_DEFAULT_REGION=us-east-1 NODE_OPTIONS='--require /workspace/infra/patches/s3-path-style.cjs' cdk bootstrap --no-notices aws://000000000000/us-east-1",
+    "deploy:local": "npm run build:lambda && CDK_DEFAULT_ACCOUNT=000000000000 CDK_DEFAULT_REGION=us-east-1 NODE_OPTIONS='--require /workspace/infra/patches/s3-path-style.cjs' cdk deploy --no-notices --require-approval never",
+    "diff:local": "CDK_DEFAULT_ACCOUNT=000000000000 CDK_DEFAULT_REGION=us-east-1 NODE_OPTIONS='--require /workspace/infra/patches/s3-path-style.cjs' cdk diff --no-notices",
+    "destroy:local": "CDK_DEFAULT_ACCOUNT=000000000000 CDK_DEFAULT_REGION=us-east-1 NODE_OPTIONS='--require /workspace/infra/patches/s3-path-style.cjs' cdk destroy --no-notices --force",
+    "synth": "CDK_DEFAULT_ACCOUNT=000000000000 CDK_DEFAULT_REGION=us-east-1 NODE_OPTIONS='--require /workspace/infra/patches/s3-path-style.cjs' cdk synth --no-notices"
+  },
+  "dependencies": {
+    "@aws-sdk/client-codebuild": "^3.0.0",
+    "aws-cdk-lib": "2.178.0",
+    "constructs": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "aws-cdk": "2.178.0",
+    "esbuild": "^0.24.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  }
+}

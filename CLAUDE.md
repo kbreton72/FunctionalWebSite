@@ -6,10 +6,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A custom blog/content website for functional medicine and holistic lifestyle, built for a non-developer content creator. Monetized via affiliate links. Hosted on AWS.
 
+## Local Development URL
+
+After `npm run infra:local`, the site is available at **http://optimumu.localhost** (port 80).
+
+The CDK stack creates a Route53 hosted zone + ACM cert for `optimumu.localhost` in LocalStack (auto-validated). LocalStack listens on port 80 via `GATEWAY_LISTEN` and routes requests by CloudFront alternate domain name. Modern browsers resolve `*.localhost` to `127.0.0.1` automatically — no hosts file changes needed.
+
+## Production Deploy Checklist (one-time before first `cdk deploy`)
+
+### Security (do these first)
+1. **Revoke exposed GitHub PAT** — `infra/cdk.out/OptimumUStack.template.json` contains a plaintext token; revoke it immediately at GitHub → Settings → Developer settings → Personal access tokens. Do NOT commit `cdk.out/` to git.
+2. **AWS CodeConnections** — AWS Console → Developer Tools → Connections → Create connection → GitHub → authorize the `FunctionalWebSite` repo. Copy the connection ARN.
+3. **Set context flag** — in `infra/cdk.json` change `"useCodeConnections": "false"` → `"true"` (or pass `-c useCodeConnections=true` on the CLI). This removes the PAT-based `GitHubSourceCredentials` construct entirely.
+4. **Store Sanity webhook secret** — add `SANITY_WEBHOOK_SECRET` to AWS Secrets Manager. The stack currently falls back to empty string if the env var is missing, which causes silent runtime failures.
+
+### Domain & TLS (production only — not needed for local)
+5. **ACM cert** — the CDK stack creates a cert for `optimumu.life` + `www.optimumu.life` automatically on deploy (cert lives in the CloudFormation stack). The deploy will hang at cert creation until DNS validation completes.
+6. **DNS validation** — after starting `cdk deploy`, AWS will issue a CNAME record that must be added to your registrar. Add it, wait for cert issuance, then deploy continues.
+7. **Route53** (optional, simplifies DNS) — set `hostedZoneId` in `infra/cdk.json`; CDK will write the validation CNAME and the CloudFront A alias records automatically. Leave it empty to manage DNS at your registrar manually.
+
+### Deploy
+8. **Deploy** — `npm run infra:deploy` from project root (pass `-c useCodeConnections=true` once CodeConnections is configured).
+9. **DNS cutover** — point `optimumu.life` A record to the `DistributionDomain` stack output (or let Route53 handle it if `hostedZoneId` is set).
+10. **Configure Sanity webhook** — paste the `WebhookEndpoint` output URL into Sanity → API → Webhooks, using the same secret.
+
+### Post-deploy hardening
+11. **Enable S3 versioning** — protects content from accidental stack deletion (`removalPolicy: DESTROY` is currently set).
+12. **Add CloudWatch alarms** — at minimum: Lambda errors and CodeBuild failures.
+13. **Enable CloudFront access logs** to S3 for debugging.
+
 ## Open Questions
 
 - [x] Domain: optimumu.life (brand: Optimum U) — currently a placeholder hosted elsewhere, will be cut over to AWS when ready
-- [ ] AWS hosting strategy: Lightsail vs S3+CloudFront vs Amplify?
+- [x] AWS hosting strategy: S3 + CloudFront (decided, implemented in CDK stack)
 - [ ] DNS cutover: update optimumu.life nameservers/A record to point to AWS
 - [ ] Financial Health hero image — to be provided, goes in `web/public/images/Financial Home Page.png`
 
@@ -43,9 +72,19 @@ A custom blog/content website for functional medicine and holistic lifestyle, bu
 - [ ] Homepage "Latest Articles" section — wire up to real Sanity posts
 - [ ] Resources/shop page for affiliate products
 - [ ] SEO: sitemap, meta tags, Open Graph
-- [ ] AWS deployment (S3 + CloudFront recommended)
-- [ ] DNS cutover from current host to AWS
+- [ ] **AWS deployment** — complete Production Deploy Checklist above before running `cdk deploy`
+- [ ] DNS cutover from current host to AWS — see Production Deploy Checklist (steps 5–9)
 - [ ] Review and refine gene diagram appearance (labels, sizing, colors)
+
+### Known Infra Issues (fix before production)
+- [ ] **CRITICAL**: Revoke exposed GitHub PAT in `cdk.out/` (see Deploy Checklist step 1)
+- [ ] `SANITY_WEBHOOK_SECRET` falls back to empty string — add synth-time validation or use Secrets Manager
+- [x] `isLocal` declaration was after first use (TDZ bug) — moved to top of constructor
+- [x] Custom domain + ACM cert wired into CloudFront; `domainName`/`hostedZoneId` in `cdk.json`
+- [x] Lambda hot-reload documented; `npm run dev:lambda` added for local watch workflow
+- [ ] S3 bucket has `removalPolicy: DESTROY` + no versioning — stack deletion wipes all content
+- [ ] CloudFront `CACHING_OPTIMIZED` caches HTML — consider shorter TTL or per-type cache headers
+- [ ] No CodeBuild cache — every build runs full `npm ci` from scratch
 
 ## Developer Context
 
@@ -66,8 +105,9 @@ npm run dev:studio   # Sanity Studio  → localhost:3333
 
 - **Frontend**: Astro 5 (static output) + Tailwind CSS v4
 - **CMS**: Sanity v3 — content schemas in `studio/schemaTypes/`
-- **Hosting**: AWS (strategy TBD — S3+CloudFront recommended)
+- **Hosting**: AWS S3 + CloudFront (CDK stack implemented in `infra/`)
 - **Domain**: optimumu.life (DNS cutover pending, currently hosted elsewhere)
+- **CI/CD**: Sanity webhook → API Gateway → Lambda (HMAC verified) → CodeBuild → S3 sync + CloudFront invalidation
 
 ### Content Pillars (6 total)
 1. Mental Health — `#C9A84C` (gold)
@@ -78,6 +118,15 @@ npm run dev:studio   # Sanity Studio  → localhost:3333
 6. Financial Health — `#5BBFB5` (teal)
 
 ### Key Files
+
+#### Infrastructure
+- `infra/bin/app.ts` — CDK app entry point
+- `infra/lib/stack.ts` — main stack: S3, CloudFront, CodeBuild, Lambda, API Gateway
+- `infra/lib/webhook-lambda/index.ts` — webhook handler (HMAC verify + CodeBuild trigger)
+- `infra/cdk.json` — CDK context config (bucket name, `useCodeConnections` flag)
+- `infra/patches/s3-path-style.cjs` — patches AWS SDK for LocalStack path-style URL compatibility
+
+#### Frontend
 - `web/src/components/HeroCarousel.astro` — homepage hero slideshow (6 slides)
 - `web/src/components/PillarsSection.astro` — six pillars grid
 - `web/src/components/GeneDiagram.astro` — DNA/gene visualization for About page
