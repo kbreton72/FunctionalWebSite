@@ -1,0 +1,14 @@
+{
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {
+      "version": "1.1.4",
+      "resolved": "ghcr.io/devcontainers/features/aws-cli@sha256:1f93c8315b7a6d76982ebb2269f8b0d50413fc0f965c032edf4aee0caceb73ef",
+      "integrity": "sha256:1f93c8315b7a6d76982ebb2269f8b0d50413fc0f965c032edf4aee0caceb73ef"
+    },
+    "ghcr.io/localstack/devcontainer-feature/localstack-cli:latest": {
+      "version": "0.1.3",
+      "resolved": "ghcr.io/localstack/devcontainer-feature/localstack-cli@sha256:3afff8e8b88714c2166d9c533976faf09100cb6bbb00c61018b9712bcde8d8ed",
+      "integrity": "sha256:3afff8e8b88714c2166d9c533976faf09100cb6bbb00c61018b9712bcde8d8ed"
+    }
+  }
+}

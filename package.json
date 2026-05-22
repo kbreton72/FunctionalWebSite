@@ -3,10 +3,18 @@
   "private": true,
   "workspaces": [
     "web",
-    "studio"
+    "studio",
+    "infra"
   ],
   "scripts": {
     "dev:web": "npm run dev --workspace=web",
-    "dev:studio": "npm run dev --workspace=studio"
+    "dev:studio": "npm run dev --workspace=studio",
+    "dev:lambda": "npm run watch:lambda --workspace=infra",
+    "preview": "npm run build --workspace=web && npx serve /tmp/astro-dist -p 4321 --single",
+    "infra:bootstrap": "npm run bootstrap:local --workspace=infra",
+    "infra:destroy": "npm run destroy:local --workspace=infra",
+    "infra:local": "npm run deploy:local --workspace=infra",
+    "infra:diff": "npm run diff:local --workspace=infra",
+    "deploy:local": "npm run build --workspace=web && awslocal s3 sync /tmp/astro-dist/ s3://optimumu-site --delete && awslocal cloudfront create-invalidation --distribution-id $(awslocal cloudfront list-distributions --query 'DistributionList.Items[0].Id' --output text) --paths '/*'"
   }
 }

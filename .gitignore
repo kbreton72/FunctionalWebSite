@@ -9,5 +9,10 @@ dist/
 Thumbs.db
 .DS_Store
 
+# CDK
+infra/cdk.out/
+infra/dist/
+infra/lib/webhook-lambda/dist/
+
 # Claude Code local settings
 .claude/
